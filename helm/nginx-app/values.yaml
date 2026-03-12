@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: 10.0.2.15:8080/library/nginx-app
+  tag: "latest"
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: harbor-secret
+
+service:
+  type: NodePort
+  port: 80
+
+ingress:
+  enabled: false
