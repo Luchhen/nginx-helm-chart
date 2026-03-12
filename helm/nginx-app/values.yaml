@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: 10.0.2.15:8080/library/nginx-app
-  tag: "latest"
+  tag: "v2"
   pullPolicy: Always
 
 imagePullSecrets:
