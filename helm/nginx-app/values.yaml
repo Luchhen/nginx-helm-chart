@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: 10.0.2.15:8080/library/nginx-app
-  tag: "1616987cf396c0283b21d543be3b1aa21fbe4344"
+  tag: "2658beea068f4d1f95ca6dd66556c6c6464ead77"
   pullPolicy: Always
 
 imagePullSecrets:
