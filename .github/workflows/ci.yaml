@@ -50,5 +50,6 @@ jobs:
           git reset --hard origin/main
           sed -i "s|tag:.*|tag: \"${{ github.sha }}\"|g" helm/nginx-app/values.yaml
           git add helm/nginx-app/values.yaml
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
           git commit -m "ci: update image tag to ${{ github.sha }}"
           git push
