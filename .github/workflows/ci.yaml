@@ -7,6 +7,9 @@ on:
     paths:
       - 'app/**'
 
+permissions:
+  contents: write
+
 jobs:
   build-and-push:
     runs-on: self-hosted  # uses your VM runner
@@ -14,6 +17,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to Harbor
         run: |
