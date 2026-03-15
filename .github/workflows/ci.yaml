@@ -45,6 +45,8 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git pull --rebase origin main
           git add helm/nginx-app/values.yaml
           git commit -m "ci: update image tag to ${{ github.sha }}"
           git push
