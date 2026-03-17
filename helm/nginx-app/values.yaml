@@ -9,8 +9,10 @@ imagePullSecrets:
   - name: harbor-secret
 
 service:
-  type: NodePort
+  type: ClusterIP
   port: 80
 
 ingress:
-  enabled: false
+  enabled: true
+  className: "nginx"
+  host: nginx-app.10.0.2.15.nip.io
