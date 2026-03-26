@@ -22,6 +22,9 @@ spec:
         - name: otel-collector
           image: otel/opentelemetry-collector-contrib:0.100.0
           args: ["--config=/etc/otel/config.yaml"]
+          securityContext:
+            runAsUser: 0        # fixes permission denied
+            runAsGroup: 0
           env:
             - name: K8S_NODE_NAME
               valueFrom:
