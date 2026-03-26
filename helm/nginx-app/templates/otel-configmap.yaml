@@ -1,0 +1,65 @@
+{{- if .Values.signoz.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    receivers:
+      filelog/nginx_access:
+        include: [/var/log/nginx/access.log]
+        start_at: beginning
+        operators:
+          - type: json_parser
+            timestamp:
+              parse_from: attributes.time
+              layout: '%Y-%m-%dT%H:%M:%S%z'
+
+      filelog/nginx_error:
+        include: [/var/log/nginx/error.log]
+        start_at: beginning
+
+      hostmetrics:
+        collection_interval: 30s
+        root_path: /hostfs
+        scrapers:
+          cpu:
+          memory:
+          disk:
+          network:
+          load:
+
+      nginx:
+        endpoint: http://localhost:80/nginx_status
+        collection_interval: 10s
+
+    processors:
+      batch:
+        timeout: 5s
+      resource/tag:
+        attributes:
+          - key: service.name
+            value: {{ .Values.signoz.serviceName }}
+            action: upsert
+          - key: deployment.environment
+            value: {{ .Values.signoz.environment }}
+            action: upsert
+
+    exporters:
+      otlp:
+        endpoint: {{ .Values.signoz.endpoint }}
+        tls:
+          insecure: true
+
+    service:
+      pipelines:
+        logs:
+          receivers: [filelog/nginx_access, filelog/nginx_error]
+          processors: [batch, resource/tag]
+          exporters: [otlp]
+        metrics:
+          receivers: [hostmetrics, nginx]
+          processors: [batch, resource/tag]
+          exporters: [otlp]
+{{- end }}

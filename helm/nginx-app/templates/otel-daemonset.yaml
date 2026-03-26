@@ -1,0 +1,57 @@
+{{- if .Values.signoz.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: otel-collector
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      serviceAccountName: otel-collector
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+        - operator: Exists          # run on ALL nodes including master
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.100.0
+          args: ["--config=/etc/otel/config.yaml"]
+          env:
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: otel-config
+              mountPath: /etc/otel
+            - name: nginx-logs
+              mountPath: /var/log/nginx
+              readOnly: true
+            - name: hostfs
+              mountPath: /hostfs
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      volumes:
+        - name: otel-config
+          configMap:
+            name: otel-collector-config
+        - name: nginx-logs
+          hostPath:
+            path: /var/log/nginx
+            type: DirectoryOrCreate
+        - name: hostfs
+          hostPath:
+            path: /
+{{- end }}

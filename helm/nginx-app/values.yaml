@@ -14,3 +14,10 @@ service:
 
 ingress:
   enabled: true
+
+# Add to your existing values.yaml
+signoz:
+  enabled: true
+  endpoint: "192.168.1.128:4317"   # e.g. 10.0.0.5:4317
+  serviceName: nginx-argocd-app
+  environment: production
