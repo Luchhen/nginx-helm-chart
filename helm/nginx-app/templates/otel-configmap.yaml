@@ -31,7 +31,7 @@ data:
           load:
 
       nginx:
-        endpoint: http://127.0.0.1:8080/nginx_status  # use the k8s service name
+        endpoint: http://127.0.0.1:80/nginx_status  # use the k8s service name
         collection_interval: 10s
 
     processors:
