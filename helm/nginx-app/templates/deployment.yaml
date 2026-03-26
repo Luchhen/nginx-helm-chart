@@ -18,9 +18,23 @@ spec:
         {{- range .Values.imagePullSecrets }}
         - name: {{ .name }}
         {{- end }}
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config        # must match the ConfigMap name
+        - name: nginx-logs
+          hostPath:
+            path: /var/log/nginx
+            type: DirectoryOrCreate
       containers:
         - name: nginx
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: nginx-logs
+              mountPath: /var/log/nginx
