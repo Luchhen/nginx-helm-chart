@@ -1,4 +1,3 @@
-{{- if .Values.signoz.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,33 +6,26 @@ metadata:
 data:
   config.yaml: |
     receivers:
-      k8s_events:
-        auth_type: serviceAccount
-        namespaces: [ingress-nginx]    # adjust to your ingress namespace
 
+      # --- Ingress controller logs ---
       filelog/ingress:
         include:
-          - /var/log/pods/ingress-nginx_*/*/*.log    # k3s pod log path on host
+          - /var/log/pods/ingress-nginx_ingress-nginx-controller-*/*/*.log
         start_at: beginning
         include_file_path: true
         operators:
           - type: regex_parser
-            id: cri_parser
-            regex: '^(?P<cri_time>\S+) (?P<stream>stdout|stderr) (?P<flags>\S+) (?P<log>.*)$'
-
+            regex: '^(?P<cri_time>\S+) (?P<stream>stdout|stderr) (?P<flags>\S) (?P<log>.+)$'
+            on_error: send
           - type: move
             from: attributes.log
             to: body
-
+            on_error: send
           - type: json_parser
-            timestamp:
-              parse_from: body
-              on_error: send
+            parse_from: body
+            on_error: send
 
-          - type: add
-            field: attributes.source
-            value: nginx-ingress-controller
-
+      # --- Host metrics: CPU, memory, disk, network ---
       hostmetrics:
         collection_interval: 30s
         root_path: /hostfs
@@ -43,14 +35,21 @@ data:
           disk:
           network:
           load:
+          filesystem:
 
-      nginx:
-        endpoint: http://127.0.0.1:30396/nginx_status  # use the k8s service name
-        collection_interval: 10s
+      # --- Nginx ingress Prometheus metrics ---
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: nginx-ingress
+              scrape_interval: 10s
+              static_configs:
+                - targets: ['10.43.194.82:10254']
 
     processors:
       batch:
         timeout: 5s
+
       resource/tag:
         attributes:
           - key: service.name
@@ -73,7 +72,6 @@ data:
           processors: [batch, resource/tag]
           exporters: [otlp]
         metrics:
-          receivers: [hostmetrics, nginx]
+          receivers: [hostmetrics, prometheus]
           processors: [batch, resource/tag]
           exporters: [otlp]
-{{- end }}
