@@ -7,18 +7,20 @@ metadata:
 data:
   config.yaml: |
     receivers:
-      filelog/nginx_access:
-        include: [/var/log/nginx/access.log]
+      k8s_events:
+        auth_type: serviceAccount
+        namespaces: [ingress-nginx]    # adjust to your ingress namespace
+
+      filelog/ingress:
+        include:
+          - /var/log/pods/ingress-nginx_*/*/*.log    # k3s pod log path on host
         start_at: beginning
+        include_file_path: true
         operators:
           - type: json_parser
             timestamp:
               parse_from: attributes.time
               layout: '%Y-%m-%dT%H:%M:%S%z'
-
-      filelog/nginx_error:
-        include: [/var/log/nginx/error.log]
-        start_at: beginning
 
       hostmetrics:
         collection_interval: 30s
@@ -31,7 +33,7 @@ data:
           load:
 
       nginx:
-        endpoint: http://127.0.0.1:80/nginx_status  # use the k8s service name
+        endpoint: http://127.0.0.1:30396/nginx_status  # use the k8s service name
         collection_interval: 10s
 
     processors:
@@ -55,7 +57,7 @@ data:
     service:
       pipelines:
         logs:
-          receivers: [filelog/nginx_access, filelog/nginx_error]
+          receivers: [filelog/ingress]
           processors: [batch, resource/tag]
           exporters: [otlp]
         metrics:

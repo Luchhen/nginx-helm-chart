@@ -33,8 +33,8 @@ spec:
           volumeMounts:
             - name: otel-config
               mountPath: /etc/otel
-            - name: nginx-logs
-              mountPath: /var/log/nginx
+            - name: pod-logs
+              mountPath: /var/log/pods
               readOnly: true
             - name: hostfs
               mountPath: /hostfs
@@ -50,9 +50,9 @@ spec:
         - name: otel-config
           configMap:
             name: otel-collector-config
-        - name: nginx-logs
+        - name: pod-logs
           hostPath:
-            path: /var/log/nginx
+            path: /var/log/pods
             type: DirectoryOrCreate
         - name: hostfs
           hostPath:
