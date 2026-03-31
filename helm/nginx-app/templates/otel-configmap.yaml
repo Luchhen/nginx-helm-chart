@@ -6,26 +6,12 @@ metadata:
 data:
   config.yaml: |
     receivers:
-
-      # --- Ingress controller logs ---
       filelog/ingress:
         include:
           - /var/log/pods/ingress-nginx_ingress-nginx-controller-*/*/*.log
         start_at: beginning
         include_file_path: true
-        operators:
-          - type: regex_parser
-            regex: '^(?P<cri_time>\S+) (?P<stream>stdout|stderr) (?P<flags>\S) (?P<log>.+)$'
-            on_error: send
-          - type: move
-            from: attributes.log
-            to: body
-            on_error: send
-          - type: json_parser
-            parse_from: body
-            on_error: send
 
-      # --- Host metrics: CPU, memory, disk, network ---
       hostmetrics:
         collection_interval: 30s
         root_path: /hostfs
@@ -37,7 +23,6 @@ data:
           load:
           filesystem:
 
-      # --- Nginx ingress Prometheus metrics ---
       prometheus:
         config:
           scrape_configs:
@@ -49,7 +34,6 @@ data:
     processors:
       batch:
         timeout: 5s
-
       resource/tag:
         attributes:
           - key: service.name
