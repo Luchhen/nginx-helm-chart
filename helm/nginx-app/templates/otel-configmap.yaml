@@ -17,10 +17,25 @@ data:
         start_at: beginning
         include_file_path: true
         operators:
+          - type: regex_parser
+            id: cri_parser
+            regex: '^(?P<cri_time>\S+) (?P<stream>stdout|stderr) (?P<flags>\S+) (?P<log>.*)$'
+            timestamp:
+              parse_from: attributes.cri_time
+              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+
+          - type: move
+            from: attributes.log
+            to: body
+
           - type: json_parser
             timestamp:
-              parse_from: attributes.time
-              layout: '%Y-%m-%dT%H:%M:%S%z'
+              parse_from: body
+              on_error: send
+
+          - type: add
+            field: attributes.source
+            value: nginx-ingress-controller
 
       hostmetrics:
         collection_interval: 30s
