@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: otel-collector-config
-  namespace: {{ .Release.Namespace }}
+  namespace: default
 data:
   config.yaml: |
     receivers:
@@ -31,21 +31,29 @@ data:
               static_configs:
                 - targets: ['10.43.194.82:10254']
 
+      # Accept traces from ingress controller
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
     processors:
       batch:
         timeout: 5s
       resource/tag:
         attributes:
           - key: service.name
-            value: {{ .Values.signoz.serviceName }}
+            value: nginx-argocd-app
             action: upsert
           - key: deployment.environment
-            value: {{ .Values.signoz.environment }}
+            value: production
             action: upsert
 
     exporters:
       otlp:
-        endpoint: {{ .Values.signoz.endpoint }}
+        endpoint: "192.168.1.128:32189"
         tls:
           insecure: true
 
@@ -57,5 +65,9 @@ data:
           exporters: [otlp]
         metrics:
           receivers: [hostmetrics, prometheus]
+          processors: [batch, resource/tag]
+          exporters: [otlp]
+        traces:
+          receivers: [otlp]
           processors: [batch, resource/tag]
           exporters: [otlp]
